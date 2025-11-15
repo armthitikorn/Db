@@ -68,7 +68,26 @@
         .score-fail { color: #e74c3c; font-weight: bold; }
         .btn-action { background-color: #1abc9c; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; }
         /* 🚨 NEW STYLE FOR AUDIO ICONS */
-        .btn-link-audio { background-color: #f39c12 !important; padding: 5px 10px !important; font-size: 14px; } 
+        .audio-inline-placeholder { 
+            background-color: #f39c12; 
+            color: white; 
+            padding: 8px 15px; 
+            border-radius: 6px; 
+            cursor: pointer; 
+            display: inline-block;
+            transition: background-color 0.2s;
+            font-weight: 500;
+            user-select: none; /* Prevent text selection on click */
+        } 
+        .audio-inline-placeholder:hover {
+            background-color: #e67e22;
+        }
+        .audio-player {
+            width: 100%;
+            height: 30px;
+            min-width: 150px; /* Ensure it looks good in responsive view */
+        }
+
 
         /* Modal Styles (Detailed Scoring) */
         #scoringModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; padding: 10px; }
@@ -159,7 +178,8 @@
                         <th onclick="sortTable(0)">วันที่ส่ง</th>
                         <th onclick="sortTable(1)">ชื่อ/รหัสพนักงาน</th>
                         <th onclick="sortTable(2)">ระดับความยาก</th>
-                        <th>ไฟล์เสียง (ลูกค้า)</th> <th>ไฟล์เสียง (พนักงาน)</th>
+                        <th>ไฟล์เสียง (ลูกค้า)</th> 
+                        <th>ไฟล์เสียง (พนักงาน)</th>
                         <th>สถานะ</th>
                         <th onclick="sortTable(4)">คะแนนรวม (Manual)</th>
                         <th onclick="sortTable(5)">ผู้ประเมิน</th>
@@ -295,13 +315,13 @@
             showLogin();
         }
 
-        // --- 5. Data Fetch & Summary Logic (Final Server-Side Date Filter) ---
+        // --- 5. Data Fetch & Summary Logic (Fixed Server-Side Date Filter) ---
         async function fetchSubmissions() {
             const startDateStr = startDateInput.value;
             const endDateStr = endDateInput.value;
             const employeeName = employeeNameInput.value.trim();
             
-            // 🚨 หมัดน็อค: กรองวันที่ฝั่ง Server โดยใช้ Range (Postgres)
+            // 🚨 การแก้ไข: กรองวันที่ฝั่ง Server โดยใช้ Range (Postgres)
             let query = supabase
                 .from('submissions')
                 .select('id, created_at, name, question_text, audio_url, customer_audio_url, manual_score, manual_feedback, reviewer_name, s1_score, s2_score, s3_score, s4_score, s5_score') 
@@ -352,7 +372,52 @@
             document.getElementById('pendingQueue').textContent = pending;
         }
 
-        // --- 6. Detailed Scoring Modal Logic (Fixed) ---
+        // --- 6. Inline Audio Playback Logic (NEW) ---
+        
+        // 🚨 ฟังก์ชันใหม่: สร้าง Audio Player ในเซลล์ตาราง
+        window.playAudioInline = function(element, url) {
+            
+            // 1. Check URL (Helpful for diagnosing the 404 issue)
+            if (!url || !url.startsWith('http')) {
+                alert('ไม่พบ URL ไฟล์เสียงที่ถูกต้อง (URL ไม่ใช่รูปแบบ http)');
+                return;
+            }
+            
+            const td = element.parentNode;
+            
+            // 2. Stop and remove any currently playing audio in this cell
+            if (td.querySelector('audio')) {
+                const existingAudio = td.querySelector('audio');
+                existingAudio.pause();
+                existingAudio.currentTime = 0;
+                td.innerHTML = element.outerHTML; // Revert back to the placeholder
+                return; // Stop here (Toggle feature: Stop/Play)
+            }
+            
+            // 3. Clear the cell and create the audio element
+            td.innerHTML = ''; 
+            
+            const audio = document.createElement('audio');
+            audio.controls = true;
+            audio.src = url;
+            audio.className = 'audio-player'; // Use CSS class for styling
+            
+            // 4. Add an event listener to revert the cell once playback stops
+            audio.addEventListener('ended', function() {
+                td.innerHTML = element.outerHTML; // Revert back to the placeholder
+            });
+            
+            // 5. If the audio loading fails (e.g., 404), alert the user and revert
+             audio.addEventListener('error', function() {
+                alert('❌ ข้อผิดพลาด: ไม่สามารถโหลดไฟล์เสียงนี้ได้ (อาจเป็น 404 File Not Found)');
+                td.innerHTML = element.outerHTML; 
+            });
+            
+            td.appendChild(audio);
+            audio.play();
+        }
+
+        // --- 7. Detailed Scoring Modal Logic (Fixed) ---
         
         window.calculateTotalScore = function() {
             const s1 = parseInt(document.getElementById('s1_score').value) || 0;
@@ -439,10 +504,9 @@
             fetchSubmissions(); 
         }
 
-        // --- 7. Table Rendering (Performance Optimized) ---
+        // --- 8. Table Rendering (Fixed for Inline Playback) ---
         function renderSubmissionsTable(data) {
             const tbody = document.getElementById('submissionsList');
-            // FIX: ใช้ DocumentFragment เพื่อเพิ่มประสิทธิภาพในการแสดงผลข้อมูลจำนวนมาก
             const fragment = document.createDocumentFragment();
 
             if (data.length === 0) {
@@ -471,6 +535,18 @@
                 const difficultyMatch = item.question_text ? item.question_text.match(/Diff: (.*)\)/) : null;
                 const difficulty = difficultyMatch ? difficultyMatch[1] : 'N/A';
                 
+                // 🚨 NEW: Inline Player HTML for Customer Audio
+                const customerAudioUrl = item.customer_audio_url;
+                const customerAudioHtml = customerAudioUrl
+                    ? `<span class="audio-inline-placeholder" onclick="playAudioInline(this, '${customerAudioUrl}')" title="คลิกเพื่อฟังเสียงลูกค้า">🔊 ลูกค้า</span>`
+                    : `<span class="text-muted small">- ไม่มีไฟล์ -</span>`;
+                    
+                // 🚨 NEW: Inline Player HTML for Employee Audio
+                const employeeAudioUrl = item.audio_url;
+                const employeeAudioHtml = employeeAudioUrl
+                    ? `<span class="audio-inline-placeholder" onclick="playAudioInline(this, '${employeeAudioUrl}')" title="คลิกเพื่อฟังเสียงพนักงาน">🎤 พนักงาน</span>`
+                    : `<span class="text-muted small">- ไม่มีไฟล์ -</span>`;
+                
                 // การสร้าง Row
                 const row = document.createElement('tr');
                 row.id = `row-${item.id}`;
@@ -480,8 +556,10 @@
                     })}</td>
                     <td data-label="ชื่อ/รหัส">${item.name || 'N/A'}</td>
                     <td data-label="ระดับความยาก">${difficulty}</td>
-                    <td data-label="ไฟล์เสียง (ลูกค้า)"><a href="${item.customer_audio_url}" target="_blank" class="btn-action btn-link-audio" title="ไฟล์เสียงลูกค้า">🔊</a></td>
-                    <td data-label="ไฟล์เสียง (พนักงาน)"><a href="${item.audio_url}" target="_blank" class="btn-action btn-link-audio" title="ไฟล์เสียงพนักงาน">🎤</a></td>
+                    
+                    <td data-label="ไฟล์เสียง (ลูกค้า)">${customerAudioHtml}</td>
+                    <td data-label="ไฟล์เสียง (พนักงาน)">${employeeAudioHtml}</td>
+                    
                     <td data-label="สถานะ" class="${scoreClass}">${statusText}</td>
                     <td data-label="คะแนน Manual" class="${scoreClass}">${scoreText}</td>
                     <td data-label="ผู้ประเมิน">${reviewer}</td>
@@ -495,7 +573,7 @@
             tbody.appendChild(fragment);
         }
         
-        // --- 8. Event Listeners and Initialization ---
+        // --- 9. Event Listeners and Initialization ---
         document.getElementById('loginBtn').addEventListener('click', handleLogin);
         document.getElementById('logoutBtn').addEventListener('click', handleLogout);
         document.getElementById('saveManualBtn').addEventListener('click', window.saveManualScore);
