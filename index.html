@@ -403,7 +403,7 @@
             loadingIndicator.style.display = 'none';
         }
 
-        // 🚨 Final Fix: ฟังก์ชัน applyFilters (แก้ไข Timezone โดยใช้ Date.UTC)
+        // 🚨 Final Fix: ฟังก์ชัน applyFilters (แก้ไข Timezone โดยใช้ Date.UTC อย่างเด็ดขาด)
         function applyFilters(users) {
             const traineeName = traineeNameFilter.value.toLowerCase();
             const trainerName = trainerNameFilter.value.toLowerCase();
@@ -427,7 +427,7 @@
                 
                 if (startDateStr) {
                     const [year, month, day] = startDateStr.split('-').map(Number);
-                    // ใช้ Date.UTC() เพื่อสร้างวันที่เริ่มต้น 00:00:00 ใน UTC โดยตรง
+                    // 🚨 หมัดน็อค: สร้างวันที่เริ่มต้น 00:00:00 ใน UTC โดยตรง
                     const startTimeUTC = Date.UTC(year, month - 1, day, 0, 0, 0, 0); 
                     const startDate = new Date(startTimeUTC); 
 
@@ -436,7 +436,7 @@
 
                 if (endDateStr) {
                     const [year, month, day] = endDateStr.split('-').map(Number);
-                    // ใช้ Date.UTC() เพื่อสร้างวันที่สิ้นสุด 23:59:59.999 ใน UTC โดยตรง
+                    // 🚨 หมัดน็อค: สร้างวันที่สิ้นสุด 23:59:59.999 ใน UTC โดยตรง
                     const endTimeUTC = Date.UTC(year, month - 1, day, 23, 59, 59, 999);
                     const endDate = new Date(endTimeUTC);
                     
