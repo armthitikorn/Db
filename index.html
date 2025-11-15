@@ -67,7 +67,7 @@
         .score-pass { color: #27ae60; font-weight: bold; }
         .score-fail { color: #e74c3c; font-weight: bold; }
         .btn-action { background-color: #1abc9c; color: white; border: none; padding: 10px 18px; border-radius: 6px; cursor: pointer; font-size: 14px; }
-        /* 🚨 NEW STYLE FOR AUDIO ICONS */
+        /* 🚨 NEW STYLE FOR AUDIO ICONS (Inline Player) */
         .audio-inline-placeholder { 
             background-color: #f39c12; 
             color: white; 
@@ -77,7 +77,7 @@
             display: inline-block;
             transition: background-color 0.2s;
             font-weight: 500;
-            user-select: none; /* Prevent text selection on click */
+            user-select: none; 
         } 
         .audio-inline-placeholder:hover {
             background-color: #e67e22;
@@ -85,7 +85,7 @@
         .audio-player {
             width: 100%;
             height: 30px;
-            min-width: 150px; /* Ensure it looks good in responsive view */
+            min-width: 150px; 
         }
 
 
@@ -378,8 +378,9 @@
         window.playAudioInline = function(element, url) {
             
             // 1. Check URL (Helpful for diagnosing the 404 issue)
-            if (!url || !url.startsWith('http')) {
-                alert('ไม่พบ URL ไฟล์เสียงที่ถูกต้อง (URL ไม่ใช่รูปแบบ http)');
+            if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
+                // Since the rendering logic now filters non-URLs, this alert only fires if logic fails or URL is truly broken
+                alert('❌ ไม่พบ URL ไฟล์เสียงที่ถูกต้อง: URL ไม่ได้ขึ้นต้นด้วย http/https หรือเป็นข้อความ Placeholder');
                 return;
             }
             
@@ -390,10 +391,14 @@
                 const existingAudio = td.querySelector('audio');
                 existingAudio.pause();
                 existingAudio.currentTime = 0;
-                td.innerHTML = element.outerHTML; // Revert back to the placeholder
+                // Revert to original placeholder HTML 
+                td.innerHTML = (td.originalContent || element.outerHTML); 
                 return; // Stop here (Toggle feature: Stop/Play)
             }
             
+            // Store original content before clearing
+            td.originalContent = td.innerHTML;
+
             // 3. Clear the cell and create the audio element
             td.innerHTML = ''; 
             
@@ -404,13 +409,13 @@
             
             // 4. Add an event listener to revert the cell once playback stops
             audio.addEventListener('ended', function() {
-                td.innerHTML = element.outerHTML; // Revert back to the placeholder
+                td.innerHTML = td.originalContent; // Revert back to the placeholder
             });
             
             // 5. If the audio loading fails (e.g., 404), alert the user and revert
              audio.addEventListener('error', function() {
                 alert('❌ ข้อผิดพลาด: ไม่สามารถโหลดไฟล์เสียงนี้ได้ (อาจเป็น 404 File Not Found)');
-                td.innerHTML = element.outerHTML; 
+                td.innerHTML = td.originalContent; 
             });
             
             td.appendChild(audio);
@@ -504,7 +509,7 @@
             fetchSubmissions(); 
         }
 
-        // --- 8. Table Rendering (Fixed for Inline Playback) ---
+        // --- 8. Table Rendering (Fixed for Inline Playback and Placeholder) ---
         function renderSubmissionsTable(data) {
             const tbody = document.getElementById('submissionsList');
             const fragment = document.createDocumentFragment();
@@ -535,17 +540,24 @@
                 const difficultyMatch = item.question_text ? item.question_text.match(/Diff: (.*)\)/) : null;
                 const difficulty = difficultyMatch ? difficultyMatch[1] : 'N/A';
                 
-                // 🚨 NEW: Inline Player HTML for Customer Audio
+                // 🚨 FINAL FIX LOGIC: Check if URL starts with HTTP before rendering the button
+                const isUrl = (url) => url && (url.startsWith('http://') || url.startsWith('https://'));
+                
                 const customerAudioUrl = item.customer_audio_url;
-                const customerAudioHtml = customerAudioUrl
-                    ? `<span class="audio-inline-placeholder" onclick="playAudioInline(this, '${customerAudioUrl}')" title="คลิกเพื่อฟังเสียงลูกค้า">🔊 ลูกค้า</span>`
-                    : `<span class="text-muted small">- ไม่มีไฟล์ -</span>`;
-                    
-                // 🚨 NEW: Inline Player HTML for Employee Audio
+                const isCustomerRealUrl = isUrl(customerAudioUrl);
+
                 const employeeAudioUrl = item.audio_url;
-                const employeeAudioHtml = employeeAudioUrl
+                const isEmployeeRealUrl = isUrl(employeeAudioUrl);
+                
+                // 🚨 Inline Player HTML for Customer Audio (Now using URL check)
+                const customerAudioHtml = isCustomerRealUrl
+                    ? `<span class="audio-inline-placeholder" onclick="playAudioInline(this, '${customerAudioUrl}')" title="คลิกเพื่อฟังเสียงลูกค้า">🔊 ลูกค้า</span>`
+                    : `<span class="text-muted small" title="${customerAudioUrl || '- ไม่มีไฟล์ -'}">- ไม่มีไฟล์ -</span>`;
+                    
+                // 🚨 Inline Player HTML for Employee Audio (Now using URL check)
+                const employeeAudioHtml = isEmployeeRealUrl
                     ? `<span class="audio-inline-placeholder" onclick="playAudioInline(this, '${employeeAudioUrl}')" title="คลิกเพื่อฟังเสียงพนักงาน">🎤 พนักงาน</span>`
-                    : `<span class="text-muted small">- ไม่มีไฟล์ -</span>`;
+                    : `<span class="text-muted small" title="${employeeAudioUrl || '- ไม่มีไฟล์ -'}">- ไม่มีไฟล์ -</span>`;
                 
                 // การสร้าง Row
                 const row = document.createElement('tr');
