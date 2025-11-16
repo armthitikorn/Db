@@ -91,11 +91,12 @@
 
         /* Modal Styles (Detailed Scoring) */
         #scoringModal { display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.6); z-index:1000; justify-content:center; align-items:center; padding: 10px; }
-        #scoringModal > div { background:white; padding:30px; border-radius:10px; width:100%; max-width: 650px; text-align:left; box-shadow: 0 10px 25px rgba(0,0,0,0.3); }
-        .score-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin-bottom: 15px; }
+        #scoringModal > div { background:white; padding:30px; border-radius:10px; width:100%; max-width: 900px; text-align:left; box-shadow: 0 10px 25px rgba(0,0,0,0.3); } /* ขยายความกว้างสำหรับ Feedback ใหม่ */
+        
+        /* Grid สำหรับ Feedback ราย Part */
         .score-input-group label { font-size: 14px; font-weight: bold; color: #2c3e50; }
-        .score-input-group input, #reviewerNameInput, #manualFeedbackTextarea { 
-             padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; margin-bottom: 15px;
+        .score-input-group input, .score-input-group textarea, #reviewerNameInput, #manualFeedbackTextarea { 
+             padding: 8px; border: 1px solid #ccc; border-radius: 4px; width: 100%; box-sizing: border-box; margin-bottom: 5px;
         }
         .total-score-box { background-color: #e8f5e9; padding: 15px; border-radius: 6px; text-align: center; margin-top: 20px; }
         .total-score-box p { font-size: 28px; color: #27ae60; margin: 0; }
@@ -107,7 +108,6 @@
             #submissionsTable tr { margin-bottom: 15px; display: block; border: 1px solid #dcdde1; border-radius: 8px; }
             #submissionsTable td { display: block; text-align: right; position: relative; padding-left: 50%; font-size: 14px; }
             #submissionsTable td::before { content: attr(data-label); position: absolute; left: 10px; width: 45%; font-weight: bold; text-align: left; color: #2c3e50; }
-            .score-grid { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -133,6 +133,7 @@
             <button id="downloadReportBtn" class="btn-action" style="background-color:#3498db; margin-bottom: 20px;">
                 <i class="bi bi-file-earmark-spreadsheet-fill me-1"></i> ดาวน์โหลดรายงาน (CSV)
             </button>
+
             <h3 class="mb-3"><i class="bi bi-search me-2"></i>ค้นหาและกรองข้อมูล</h3>
             <div class="card p-3 mb-4 shadow-sm">
                 <div class="row g-3 align-items-end">
@@ -200,45 +201,65 @@
             <h3 style="color:#3498db;">ประเมินผลงาน: <span id="modalTraineeName"></span></h3>
             <p style="font-size:14px; color:#7f8c8d;">*คะแนนเต็มแต่ละส่วนคือ 20 คะแนน (รวม 100 คะแนน)เกณฑ์ผ่าน80คะแนนขึ้นไป</p>
             
-            <div class="score-grid">
-                <div class="score-input-group">
-                    <label for="s1_score">S1: เปิดตัว (20)</label>
-                    <input type="number" id="s1_score" min="0" max="20" oninput="calculateTotalScore()" required>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <div class="score-input-group card p-3 border-primary">
+                        <label for="s1_score">S1: เปิดตัว (20)</label>
+                        <input type="number" id="s1_score" min="0" max="20" oninput="calculateTotalScore()" required>
+                        <label for="s1_feedback" class="small mt-2">ข้อเสนอแนะ S1:</label>
+                        <textarea id="s1_feedback" rows="2" placeholder="ใส่ความคิดเห็นสำหรับ S1"></textarea>
+                    </div>
                 </div>
-                <div class="score-input-group">
-                    <label for="s2_score">S2: ตอบคำถาม (20)</label>
-                    <input type="number" id="s2_score" min="0" max="20" oninput="calculateTotalScore()" required>
+                <div class="col-md-6">
+                    <div class="score-input-group card p-3 border-primary">
+                        <label for="s2_score">S2: ตอบคำถาม (20)</label>
+                        <input type="number" id="s2_score" min="0" max="20" oninput="calculateTotalScore()" required>
+                        <label for="s2_feedback" class="small mt-2">ข้อเสนอแนะ S2:</label>
+                        <textarea id="s2_feedback" rows="2" placeholder="ใส่ความคิดเห็นสำหรับ S2"></textarea>
+                    </div>
                 </div>
-                <div class="score-input-group">
-                    <label for="s3_score">S3: ข้อโต้แย้ง (20)</label>
-                    <input type="number" id="s3_score" min="0" max="20" oninput="calculateTotalScore()" required>
+                <div class="col-md-6">
+                    <div class="score-input-group card p-3 border-primary">
+                        <label for="s3_score">S3: ข้อโต้แย้ง (20)</label>
+                        <input type="number" id="s3_score" min="0" max="20" oninput="calculateTotalScore()" required>
+                        <label for="s3_feedback" class="small mt-2">ข้อเสนอแนะ S3:</label>
+                        <textarea id="s3_feedback" rows="2" placeholder="ใส่ความคิดเห็นสำหรับ S3"></textarea>
+                    </div>
                 </div>
-                <div class="score-input-group">
-                    <label for="s4_score">S4: สุขภาพ/ซักประวัติ (20)</label>
-                    <input type="number" id="s4_score" min="0" max="20" oninput="calculateTotalScore()" required>
+                <div class="col-md-6">
+                    <div class="score-input-group card p-3 border-primary">
+                        <label for="s4_score">S4: สุขภาพ/ซักประวัติ (20)</label>
+                        <input type="number" id="s4_score" min="0" max="20" oninput="calculateTotalScore()" required>
+                        <label for="s4_feedback" class="small mt-2">ข้อเสนอแนะ S4:</label>
+                        <textarea id="s4_feedback" rows="2" placeholder="ใส่ความคิดเห็นสำหรับ S4"></textarea>
+                    </div>
                 </div>
-                <div class="score-input-group">
-                    <label for="s5_score">S5: ลงทะเบียน (20)</label>
-                    <input type="number" id="s5_score" min="0" max="20" oninput="calculateTotalScore()" required>
+                <div class="col-md-6">
+                    <div class="score-input-group card p-3 border-primary">
+                        <label for="s5_score">S5: ลงทะเบียน (20)</label>
+                        <input type="number" id="s5_score" min="0" max="20" oninput="calculateTotalScore()" required>
+                        <label for="s5_feedback" class="small mt-2">ข้อเสนอแนะ S5:</label>
+                        <textarea id="s5_feedback" rows="2" placeholder="ใส่ความคิดเห็นสำหรับ S5"></textarea>
+                    </div>
                 </div>
             </div>
 
             <div class="total-score-box">
                 <small>คะแนนรวม (S1+S2+S3+S4+S5)</small>
                 <p id="totalScoreDisplay">0</p>
-                <input type="hidden" id="manualScoreInput"> </div>
+                <input type="hidden" id="manualScoreInput"> 
+            </div>
             
             <label for="reviewerNameInput" style="margin-top: 20px;">ชื่อผู้ประเมิน:</label>
             <input type="text" id="reviewerNameInput" required>
 
-            <label for="manualFeedbackTextarea">ข้อเสนอแนะ:</label>
+            <label for="manualFeedbackTextarea">ข้อเสนอแนะ **สรุปโดยรวม**:</label>
             <textarea id="manualFeedbackTextarea" rows="4"></textarea>
 
             <button id="saveManualBtn" class="btn-action" style="background-color:#27ae60; margin-right:10px;">💾 บันทึกคะแนน</button>
             <button onclick="document.getElementById('scoringModal').style.display='none'" class="btn-action" style="background-color:#7f8c8d;">ยกเลิก</button>
         </div>
     </div>
-
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
 
     <script type="module">
@@ -256,7 +277,6 @@
         
         // --- 3. DOM Elements & State ---
         let currentScoringId = null; 
-        // 🚨 ตัวแปรสำหรับเก็บข้อมูลที่โหลดมาล่าสุด เพื่อใช้สำหรับ Export Report
         let currentSubmissionsData = []; 
         
         const loginPage = document.getElementById('loginPage');
@@ -266,7 +286,7 @@
         const employeeNameInput = document.getElementById('employeeNameInput'); 
         const filterBtn = document.getElementById('filterBtn');
         const submissionsList = document.getElementById('submissionsList'); 
-        const downloadReportBtn = document.getElementById('downloadReportBtn'); // เพิ่มตัวแปรสำหรับปุ่มดาวน์โหลด
+        const downloadReportBtn = document.getElementById('downloadReportBtn'); 
 
         // --- 4. Authentication Logic ---
         
@@ -287,7 +307,6 @@
             document.getElementById('loginPage').style.display = 'none';
             document.getElementById('mainDashboard').style.display = 'block';
             
-            // ตั้งค่าวันที่เริ่มต้นและสิ้นสุดอัตโนมัติ (Final Fix for Default Dates)
             if (!startDateInput.value && !endDateInput.value) {
                 const today = new Date();
                 const pastDate = new Date();
@@ -297,7 +316,6 @@
                 endDateInput.value = today.toISOString().split('T')[0];
             }
             
-            // 🚨 การแก้ไข: โหลดข้อมูลทันทีเมื่อ Dashboard เปิดขึ้น
             fetchSubmissions(); 
         }
 
@@ -321,30 +339,26 @@
             showLogin();
         }
 
-        // --- 5. Data Fetch & Summary Logic (Fixed Server-Side Date Filter) ---
+        // --- 5. Data Fetch & Summary Logic ---
         async function fetchSubmissions() {
             const startDateStr = startDateInput.value;
             const endDateStr = endDateInput.value;
             const employeeName = employeeNameInput.value.trim();
             
-            // 🚨 การแก้ไข: กรองวันที่ฝั่ง Server โดยใช้ Range (Postgres)
             let query = supabase
                 .from('submissions')
-                .select('id, created_at, name, question_text, audio_url, customer_audio_url, manual_score, manual_feedback, reviewer_name, s1_score, s2_score, s3_score, s4_score, s5_score') 
+                // 🚨 เพิ่มคอลัมน์ Feedback ใหม่ 5 คอลัมน์
+                .select('id, created_at, name, question_text, audio_url, customer_audio_url, manual_score, manual_feedback, reviewer_name, s1_score, s2_score, s3_score, s4_score, s5_score, s1_feedback, s2_feedback, s3_feedback, s4_feedback, s5_feedback') 
                 .order('created_at', { ascending: false });
             
-            // Apply Date Filter using ISO/UTC boundaries
             if (startDateStr && endDateStr) {
-                 // Start: YYYY-MM-DDT00:00:00.000Z
                  const serverStartDate = startDateStr + 'T00:00:00.000Z'; 
-                 // End: YYYY-MM-DDT23:59:59.999Z
                  const serverEndDate = endDateStr + 'T23:59:59.999Z'; 
                  
                  query = query.gte('created_at', serverStartDate);
                  query = query.lte('created_at', serverEndDate);
             }
 
-            // Apply Name Filter
             if (employeeName) {
                 query = query.ilike('name', `%${employeeName}%`); 
             }
@@ -358,7 +372,6 @@
                 return;
             }
             
-            // 🚨 เก็บข้อมูลที่ดึงมาล่าสุดไว้ในตัวแปร global เพื่อใช้สำหรับดาวน์โหลด Report
             currentSubmissionsData = data;
             
             updateDashboardSummary(data);
@@ -381,47 +394,38 @@
             document.getElementById('pendingQueue').textContent = pending;
         }
 
-        // --- 6. Inline Audio Playback Logic (NEW) ---
+        // --- 6. Inline Audio Playback Logic ---
         
-        // 🚨 ฟังก์ชันใหม่: สร้าง Audio Player ในเซลล์ตาราง
         window.playAudioInline = function(element, url) {
             
-            // 1. Check URL (Helpful for diagnosing the 404 issue)
             if (!url || (!url.startsWith('http://') && !url.startsWith('https://'))) {
-                // Since the rendering logic now filters non-URLs, this alert only fires if logic fails or URL is truly broken
                 alert('❌ ไม่พบ URL ไฟล์เสียงที่ถูกต้อง: URL ไม่ได้ขึ้นต้นด้วย http/https หรือเป็นข้อความ Placeholder');
                 return;
             }
             
             const td = element.parentNode;
             
-            // 2. Stop and remove any currently playing audio in this cell
             if (td.querySelector('audio')) {
                 const existingAudio = td.querySelector('audio');
                 existingAudio.pause();
                 existingAudio.currentTime = 0;
-                // Revert to original placeholder HTML 
                 td.innerHTML = (td.originalContent || element.outerHTML); 
-                return; // Stop here (Toggle feature: Stop/Play)
+                return; 
             }
             
-            // Store original content before clearing
             td.originalContent = td.innerHTML;
 
-            // 3. Clear the cell and create the audio element
             td.innerHTML = ''; 
             
             const audio = document.createElement('audio');
             audio.controls = true;
             audio.src = url;
-            audio.className = 'audio-player'; // Use CSS class for styling
+            audio.className = 'audio-player'; 
             
-            // 4. Add an event listener to revert the cell once playback stops
             audio.addEventListener('ended', function() {
-                td.innerHTML = td.originalContent; // Revert back to the placeholder
+                td.innerHTML = td.originalContent; 
             });
             
-            // 5. If the audio loading fails (e.g., 404), alert the user and revert
              audio.addEventListener('error', function() {
                 alert('❌ ข้อผิดพลาด: ไม่สามารถโหลดไฟล์เสียงนี้ได้ (อาจเป็น 404 File Not Found)');
                 td.innerHTML = td.originalContent; 
@@ -431,7 +435,7 @@
             audio.play();
         }
 
-        // --- 7. Detailed Scoring Modal Logic (Fixed) ---
+        // --- 7. Detailed Scoring Modal Logic (Modified for Part-by-Part Feedback) ---
         
         window.calculateTotalScore = function() {
             const s1 = parseInt(document.getElementById('s1_score').value) || 0;
@@ -452,15 +456,26 @@
             document.getElementById('modalTraineeName').textContent = traineeName;
             document.getElementById('saveManualBtn').disabled = false;
             
-            const { data: currentData } = await supabase.from('submissions').select('manual_score, manual_feedback, reviewer_name, s1_score, s2_score, s3_score, s4_score, s5_score').eq('id', submissionId).single();
+            const { data: currentData } = await supabase.from('submissions')
+                // 🚨 เพิ่มคอลัมน์ Feedback ที่ต้องการดึง
+                .select('manual_score, manual_feedback, reviewer_name, s1_score, s2_score, s3_score, s4_score, s5_score, s1_feedback, s2_feedback, s3_feedback, s4_feedback, s5_feedback')
+                .eq('id', submissionId).single();
             
-            // Load existing data into modal inputs
+            // Load existing Scores
             document.getElementById('s1_score').value = currentData?.s1_score || '';
             document.getElementById('s2_score').value = currentData?.s2_score || '';
             document.getElementById('s3_score').value = currentData?.s3_score || '';
             document.getElementById('s4_score').value = currentData?.s4_score || '';
             document.getElementById('s5_score').value = currentData?.s5_score || '';
             
+            // 🚨 Load existing Part-by-Part Feedback
+            document.getElementById('s1_feedback').value = currentData?.s1_feedback || '';
+            document.getElementById('s2_feedback').value = currentData?.s2_feedback || '';
+            document.getElementById('s3_feedback').value = currentData?.s3_feedback || '';
+            document.getElementById('s4_feedback').value = currentData?.s4_feedback || '';
+            document.getElementById('s5_feedback').value = currentData?.s5_feedback || '';
+            
+            // Load existing Reviewer Info
             document.getElementById('reviewerNameInput').value = currentData?.reviewer_name || localStorage.getItem('last_reviewer') || '';
             document.getElementById('manualFeedbackTextarea').value = currentData?.manual_feedback || '';
             
@@ -480,7 +495,14 @@
             const s5 = parseInt(document.getElementById('s5_score').value);
             
             const reviewer = document.getElementById('reviewerNameInput').value.trim();
-            const feedback = document.getElementById('manualFeedbackTextarea').value.trim();
+            const feedback = document.getElementById('manualFeedbackTextarea').value.trim(); // Feedback สรุปโดยรวม
+            
+            // 🚨 ดึงค่า Feedback ราย Part
+            const s1_feedback = document.getElementById('s1_feedback').value.trim();
+            const s2_feedback = document.getElementById('s2_feedback').value.trim();
+            const s3_feedback = document.getElementById('s3_feedback').value.trim();
+            const s4_feedback = document.getElementById('s4_feedback').value.trim();
+            const s5_feedback = document.getElementById('s5_feedback').value.trim();
             
             // Input Validation
             if (totalScore > 100 || !reviewer || isNaN(s1) || isNaN(s2) || isNaN(s3) || isNaN(s4) || isNaN(s5)) {
@@ -491,22 +513,26 @@
             document.getElementById('saveManualBtn').textContent = '⏳ กำลังบันทึก...';
             document.getElementById('saveManualBtn').disabled = true;
             
-            // Store reviewer name locally for next use
             localStorage.setItem('last_reviewer', reviewer);
 
-            // บันทึกเข้า Supabase พร้อมคะแนนย่อย
+            // บันทึกเข้า Supabase
             const { error } = await supabase
                 .from('submissions')
                 .update({ 
                     manual_score: totalScore, 
                     manual_feedback: feedback, 
                     reviewer_name: reviewer,
-                    s1_score: s1, s2_score: s2, s3_score: s3, s4_score: s4, s5_score: s5
+                    s1_score: s1, s2_score: s2, s3_score: s3, s4_score: s4, s5_score: s5,
+                    // 🚨 บันทึก Feedback ราย Part
+                    s1_feedback: s1_feedback, 
+                    s2_feedback: s2_feedback, 
+                    s3_feedback: s3_feedback, 
+                    s4_feedback: s4_feedback, 
+                    s5_feedback: s5_feedback,
                 })
                 .eq('id', currentScoringId);
 
             if (error) {
-                // FIX: แจ้งเตือนเรื่อง RLS
                 alert(`❌ Error saving score: ${error.message}. การบันทึกคะแนนล้มเหลว โปรดตรวจสอบ RLS Policy สำหรับตาราง 'submissions' (อนุญาตให้ role 'anon' ทำการ UPDATE ข้อมูล)`);
                 document.getElementById('saveManualBtn').textContent = '❌ บันทึกล้มเหลว';
                 document.getElementById('saveManualBtn').disabled = false;
@@ -518,7 +544,7 @@
             fetchSubmissions(); 
         }
 
-        // --- 8. Table Rendering (Fixed for Inline Playback and Placeholder) ---
+        // --- 8. Table Rendering ---
         function renderSubmissionsTable(data) {
             const tbody = document.getElementById('submissionsList');
             const fragment = document.createDocumentFragment();
@@ -545,11 +571,9 @@
                         onclick="showScoringModal('${item.id}', '${item.name}', event)">✅ แก้ไขคะแนน</button>`;
                 }
                 
-                // การดึงระดับความยากจาก question_text 
                 const difficultyMatch = item.question_text ? item.question_text.match(/Diff: (.*)\)/) : null;
                 const difficulty = difficultyMatch ? difficultyMatch[1] : 'N/A';
                 
-                // 🚨 FINAL FIX LOGIC: Check if URL starts with HTTP before rendering the button
                 const isUrl = (url) => url && (url.startsWith('http://') || url.startsWith('https://'));
                 
                 const customerAudioUrl = item.customer_audio_url;
@@ -558,17 +582,14 @@
                 const employeeAudioUrl = item.audio_url;
                 const isEmployeeRealUrl = isUrl(employeeAudioUrl);
                 
-                // 🚨 Inline Player HTML for Customer Audio (Now using URL check)
                 const customerAudioHtml = isCustomerRealUrl
                     ? `<span class="audio-inline-placeholder" onclick="playAudioInline(this, '${customerAudioUrl}')" title="คลิกเพื่อฟังเสียงลูกค้า">🔊 ลูกค้า</span>`
                     : `<span class="text-muted small" title="${customerAudioUrl || '- ไม่มีไฟล์ -'}">- ไม่มีไฟล์ -</span>`;
                     
-                // 🚨 Inline Player HTML for Employee Audio (Now using URL check)
                 const employeeAudioHtml = isEmployeeRealUrl
                     ? `<span class="audio-inline-placeholder" onclick="playAudioInline(this, '${employeeAudioUrl}')" title="คลิกเพื่อฟังเสียงพนักงาน">🎤 พนักงาน</span>`
                     : `<span class="text-muted small" title="${employeeAudioUrl || '- ไม่มีไฟล์ -'}">- ไม่มีไฟล์ -</span>`;
                 
-                // การสร้าง Row
                 const row = document.createElement('tr');
                 row.id = `row-${item.id}`;
                 row.innerHTML = `
@@ -589,35 +610,39 @@
                 fragment.appendChild(row);
             });
             
-            // Clear existing rows and append the fragment in one operation
             tbody.innerHTML = ''; 
             tbody.appendChild(fragment);
         }
         
-        // 🚨 9. Report Download Logic (NEWLY MODIFIED for specific data fields)
+        // --- 9. Report Download Logic (MODIFIED for Part-by-Part Feedback) ---
         window.downloadReport = function() {
             if (currentSubmissionsData.length === 0) {
                 alert('ไม่พบข้อมูลที่จะดาวน์โหลด! กรุณาโหลดข้อมูลก่อน (โดยใช้ปุ่ม "กรองข้อมูล")');
                 return;
             }
 
+            // ฟังก์ชันช่วยจัดรูปแบบข้อความสำหรับ CSV (จัดการเรื่อง ", และ Newline)
+            const formatCsvText = (text) => `"${(text || '').replace(/"/g, '""').replace(/\n/g, ' ')}"`;
+
             // 1. กำหนด Header (ชื่อคอลัมน์) ตามที่ต้องการ
             const headers = [
-                // 2. ชื่อของผู้ถูกประเมิน (ชื่อ/รหัสพนักงาน)
                 "ชื่อผู้ถูกประเมิน (Name/ID)", 
-                // 1. ชื่อของผู้ประเมิน
                 "ชื่อผู้ประเมิน", 
-                // 3. คะแนนที่ผู้ถูกประเมินได้รับในแต่ละหัวข้อ
+                // คะแนนย่อย
                 "S1: เปิดตัว (20)", 
+                "Fdbk S1: เปิดตัว",
                 "S2: ตอบคำถาม (20)", 
+                "Fdbk S2: ตอบคำถาม",
                 "S3: ข้อโต้แย้ง (20)", 
+                "Fdbk S3: ข้อโต้แย้ง",
                 "S4: สุขภาพ/ซักประวัติ (20)", 
+                "Fdbk S4: สุขภาพ/ซักประวัติ",
                 "S5: ลงทะเบียน (20)", 
+                "Fdbk S5: ลงทะเบียน",
+                // สรุป
                 "คะแนนรวม Manual (100)", 
-                // 4. ข้อความผ่านหรือไม่ผ่าน
                 "สถานะ (ผ่าน/ไม่ผ่าน)", 
-                // 5. ข้อมูลความคิดเห็นของผู้ประเมิน
-                "ข้อเสนอแนะของผู้ประเมิน",
+                "ข้อเสนอแนะ สรุปโดยรวม",
                 "วันที่ส่งผลงาน"
             ];
             
@@ -626,45 +651,48 @@
             // 2. สร้างแถวข้อมูล
             currentSubmissionsData.forEach(item => {
                 const score = item.manual_score;
-                // เกณฑ์ผ่านคือ 80 คะแนนขึ้นไป
                 const statusText = score !== null 
                                 ? (score >= 80 ? 'ผ่าน (Passed)' : 'ไม่ผ่าน (Failed)') 
                                 : 'รอการประเมิน (Pending)';
                 
                 const reviewer = item.reviewer_name || 'ยังไม่มีผู้ประเมิน';
 
-                // สร้าง Array ของค่าสำหรับแต่ละแถว โดยการจัดการเครื่องหมายอัญประกาศในข้อมูล
                 const row = [
-                    `"${(item.name || 'N/A').replace(/"/g, '""')}"`, // 2. ชื่อผู้ถูกประเมิน
-                    `"${(reviewer).replace(/"/g, '""')}"`, // 1. ชื่อผู้ประเมิน
+                    formatCsvText(item.name || 'N/A'), 
+                    formatCsvText(reviewer), 
                     
-                    // 3. คะแนนย่อยแต่ละหัวข้อ
+                    // คะแนนและ Feedback ราย Part (สลับกัน)
                     item.s1_score !== null ? item.s1_score : '', 
+                    formatCsvText(item.s1_feedback), 
                     item.s2_score !== null ? item.s2_score : '', 
+                    formatCsvText(item.s2_feedback), 
                     item.s3_score !== null ? item.s3_score : '', 
+                    formatCsvText(item.s3_feedback), 
                     item.s4_score !== null ? item.s4_score : '', 
+                    formatCsvText(item.s4_feedback), 
                     item.s5_score !== null ? item.s5_score : '', 
+                    formatCsvText(item.s5_feedback), 
+                    
                     item.manual_score !== null ? item.manual_score : '', // คะแนนรวม
                     
-                    `"${statusText}"`, // 4. สถานะ
+                    formatCsvText(statusText), 
                     
-                    // 5. ข้อเสนอแนะ (จัดการให้ข้อความความคิดเห็นอยู่ในเครื่องหมาย "" และแทนที่ newline ด้วยช่องว่าง)
-                    `"${(item.manual_feedback || '- ไม่มีข้อเสนอแนะ -').replace(/"/g, '""').replace(/\n/g, ' ')}"`, 
+                    formatCsvText(item.manual_feedback || '- ไม่มีข้อเสนอแนะ -'), // ข้อเสนอแนะรวม
                     
-                    `"${new Date(item.created_at).toLocaleString('th-TH')}"`, // วันที่ส่ง
+                    formatCsvText(new Date(item.created_at).toLocaleString('th-TH')), // วันที่ส่ง
                 ];
                 
                 csv += row.join(',') + '\n';
             });
 
-            // 3. สร้าง Blob และดาวน์โหลดไฟล์ (เพิ่ม UTF-8 BOM สำหรับรองรับภาษาไทยใน Excel)
+            // 3. สร้าง Blob และดาวน์โหลดไฟล์
             const blob = new Blob([new Uint8Array([0xEF, 0xBB, 0xBF]), csv], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const a = document.createElement('a');
             
             const startDate = document.getElementById('startDate').value;
             const endDate = document.getElementById('endDate').value;
-            const fileName = `Evaluation_Report_${startDate}_to_${endDate}.csv`;
+            const fileName = `Evaluation_Report_Detail_${startDate}_to_${endDate}.csv`;
 
             a.setAttribute('href', url);
             a.setAttribute('download', fileName);
@@ -678,10 +706,8 @@
         document.getElementById('logoutBtn').addEventListener('click', handleLogout);
         document.getElementById('saveManualBtn').addEventListener('click', window.saveManualScore);
         filterBtn.addEventListener('click', fetchSubmissions); 
-        // 🚨 Event Listener สำหรับปุ่มดาวน์โหลด
         downloadReportBtn.addEventListener('click', window.downloadReport);
 
-        // Initial load check
         document.addEventListener('DOMContentLoaded', checkAuth);
     </script>
 </body>
